@@ -19,9 +19,19 @@
             <p class="mb-3">
               <nuxt-link to="#you" class="no-underline"> About You </nuxt-link>
             </p>
-            <p>
+            <p class="mb-3">
               <nuxt-link to="#listening-preferences" class="no-underline">
                 Listening Preferences
+              </nuxt-link>
+            </p>
+            <p class="mb-3">
+              <nuxt-link to="#notifications" class="no-underline">
+                Notifications
+              </nuxt-link>
+            </p>
+            <p>
+              <nuxt-link to="#display" class="no-underline">
+                Display Preferences
               </nuxt-link>
             </p>
           </div>
@@ -34,11 +44,11 @@
             <supabase-upload-image :image="avatarImage" />
             <Divider class="my-8" />
             <h3 id="you" class="mb-4">About You</h3>
-            <label class="mb-4">
+            <label class="mb-4 lg:w-4">
               <p>Name</p>
               <input @change="updateProfile" v-model="fullName" type="text" />
             </label>
-            <label class="mb-4">
+            <label class="mb-4 lg:w-4">
               <p>Pronouns</p>
               <select @change="updateProfile" v-model="pronouns">
                 <option value="He/Him" :selected="pronouns === 'He/Him'">
@@ -62,7 +72,7 @@
             <h3 id="listening-preferences" class="mb-4">
               Listening Preferences
             </h3>
-            <label class="mb-4">
+            <label class="mb-4 lg:w-4">
               <p class="mb-2">Default Live Stream</p>
               <select v-model="defaultLiveStream" @change="updateProfile">
                 <option value="wnyc_fm">WNYC FM</option>
@@ -84,6 +94,45 @@
                 Automatically transition to the livestream when on-demand
                 segments are over
               </p>
+            </label>
+            <label class="flex mb-4">
+              <input
+                type="checkbox"
+                @change="updateProfile"
+                v-model="autodownload"
+                class="mr-2"
+              />
+              <p>Autodownload on-demand segments</p>
+            </label>
+            <Divider class="my-8" />
+            <h3 id="notifications" class="mb-4">Notifications</h3>
+            <label class="flex mb-4">
+              <input
+                type="checkbox"
+                @change="updateProfile"
+                v-model="receive_general_notifications"
+                class="mr-2"
+              />
+              <p>Receive general notifications</p>
+            </label>
+            <Divider class="my-8" />
+            <h3 id="display" class="mb-4">Display Preferences</h3>
+            <label class="mb-4 lg:w-4">
+              <p class="mb-2">Text size</p>
+              <select v-model="text_size" @change="updateProfile">
+                <option value="normal">Normal</option>
+                <option value="large">Large</option>
+                <option value="extra large">Extra Large</option>
+              </select>
+            </label>
+            <label class="flex mb-4">
+              <input
+                type="checkbox"
+                @change="updateProfile"
+                v-model="dark_mode"
+                class="mr-2"
+              />
+              <p>Enable dark theme (where available)</p>
             </label>
             <div class="changes-saved-toast">
               <Message
@@ -115,13 +164,17 @@ const currentUser = useCurrentUser()
 const config = useRuntimeConfig()
 const supabase = createClient(config.supabaseUrl, config.supabaseKey)
 
+const autodownload = ref(false)
 const continuousPlay = ref('')
+const dark_mode = ref(false)
 const defaultLiveStream = ref('')
 const fullName = ref('')
 const profile = ref([])
 const avatarImage = ref(null)
 const pronouns = ref('')
+const receive_general_notifications = ref(false)
 const successMessage = ref(false)
+const text_size = ref('')
 
 onMounted(() => {
   // if hash exists, scroll down to that id
@@ -146,6 +199,10 @@ if (data) {
   defaultLiveStream.value = data[0]?.default_live_stream
   fullName.value = data[0]?.full_name
   pronouns.value = data[0]?.pronouns
+  dark_mode.value = data[0]?.dark_mode
+  receive_general_notifications.value = data[0]?.receive_general_notifications
+  text_size.value = data[0]?.text_size
+  autodownload.value = data[0]?.autodownload
 }
 
 const updateProfile = async () => {
@@ -159,6 +216,10 @@ const updateProfile = async () => {
       pronouns: pronouns.value,
       continuous_play: continuousPlay.value,
       default_live_stream: defaultLiveStream.value,
+      dark_mode: dark_mode.value,
+      receive_general_notifications: receive_general_notifications.value,
+      text_size: text_size.value,
+      autodownload: autodownload.value,
     })
     .match({ id: currentUser.value.id })
   if (error) {
